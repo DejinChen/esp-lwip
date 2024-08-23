@@ -104,6 +104,15 @@ struct nd6_prefix_list_entry {
   u32_t invalidation_timer; /* in seconds */
 };
 
+struct nd6_route_list_entry {
+    ip6_addr_t prefix;
+    u8_t prefix_len;
+    u8_t preference;
+    struct nd6_neighbor_cache_entry *neighbor_entry;
+    struct netif* netif;
+    u32_t invalidation_timer;
+};
+
 struct nd6_router_list_entry {
   struct nd6_neighbor_cache_entry *neighbor_entry;
   u32_t invalidation_timer; /* in seconds */
