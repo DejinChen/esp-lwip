@@ -137,9 +137,6 @@ extern struct nd6_neighbor_cache_entry neighbor_cache[];
 extern struct nd6_destination_cache_entry destination_cache[];
 extern struct nd6_prefix_list_entry prefix_list[];
 extern struct nd6_router_list_entry default_router_list[];
-#if LWIP_ND6_SUPPORT_RIO
-extern struct nd6_route_list_entry route_list[];
-#endif
 
 /* Default values, can be updated by a RA message. */
 extern u32_t reachable_time;

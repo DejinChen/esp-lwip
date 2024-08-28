@@ -790,7 +790,7 @@ nd6_input(struct pbuf *p, struct netif *inp)
         }
         route_opt = (struct route_option *)buffer;
         prefix_length = route_opt->prefix_length;
-        preference = &route_opt->preference;
+        preference = route_opt->preference;
         route_lifetime = route_opt->route_lifetime;
 
         /* The option should have enough bytes to encode prefix_length bits of the address. */
