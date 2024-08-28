@@ -82,7 +82,7 @@ struct nd6_destination_cache_entry destination_cache[LWIP_ND6_NUM_DESTINATIONS];
 struct nd6_prefix_list_entry prefix_list[LWIP_ND6_NUM_PREFIXES];
 struct nd6_router_list_entry default_router_list[LWIP_ND6_NUM_ROUTERS];
 #if LWIP_ND6_SUPPORT_RIO
-struct nd6_route_list_entry route_list[LWIP_ND6_NUM_ROUTES];
+static struct nd6_route_list_entry route_list[LWIP_ND6_NUM_ROUTES];
 #endif
 
 /* Default values, can be updated by a RA message. */
@@ -789,9 +789,9 @@ nd6_input(struct pbuf *p, struct netif *inp)
           goto lenerr_drop_free_return;
         }
         route_opt = (struct route_option *)buffer;
-        memcpy(&prefix_length, &route_opt->prefix_length, sizeof(prefix_length));
-        memcpy(&preference, &route_opt->preference, sizeof(preference));
-        memcpy(&route_lifetime, &route_opt->route_lifetime, sizeof(route_lifetime));
+        prefix_length = route_opt->prefix_length;
+        preference = &route_opt->preference;
+        route_lifetime = route_opt->route_lifetime;
 
         /* The option should have enough bytes to encode prefix_length bits of the address. */
         addr_bytes = (prefix_length + 7) >> 3;
@@ -833,7 +833,7 @@ nd6_input(struct pbuf *p, struct netif *inp)
             }
           }
         }
-#endif
+#endif /* LWIP_ND6_SUPPORT_RIO */
         break;
       }
 #if LWIP_ND6_RDNSS_MAX_DNS_SERVERS
@@ -1789,23 +1789,20 @@ nd6_is_prefix_in_netif(const ip6_addr_t *ip6addr, struct netif *netif)
  */
 static s8_t compare_prefix(const ip6_addr_t *addr1, const ip6_addr_t *addr2, u8_t prefix_len)
 {
-  u8_t u32_len = prefix_len >> 5;
+  u8_t u32_len = prefix_len / 32;
   u8_t remain_bit_len = prefix_len % 32;
 
   if (!addr1 || !addr2) {
     return 0;
   }
 
-  if (memcmp(addr1, addr2, u32_len * 4) != 0)
-  {
+  if (memcmp(addr1, addr2, u32_len * 4) != 0) {
     return 0;
   }
 
-  if (remain_bit_len > 0)
-  {
+  if (remain_bit_len > 0) {
     u8_t mask = ((u32_t)0x1 << remain_bit_len) - 1;
-    if ((addr1->addr[u32_len] & mask) != (addr2->addr[u32_len] & mask))
-    {
+    if ((addr1->addr[u32_len] & mask) != (addr2->addr[u32_len] & mask)) {
       return 0;
     }
   }
@@ -2185,7 +2182,7 @@ nd6_new_route(const ip6_addr_t *prefix, const u8_t prefix_len)
   /* Entry not available. */
   return -1;
 }
-#endif
+#endif /* LWIP_ND6_SUPPORT_RIO */
 
 /**
  * Determine the next hop for a destination. Will determine if the
