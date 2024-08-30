@@ -166,6 +166,8 @@ u32_t esp_random(void);
 
 #else
 
+#define UDP_DEBUG                       LWIP_DBG_ON
+
 #define LWIP_RAND() ((u32_t)rand())
 #define ESP_LWIP                                0
 #define ESP_DNS                                 0
