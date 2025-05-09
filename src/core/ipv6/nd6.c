@@ -1067,62 +1067,6 @@ nd6_tmr(void)
   s8_t i;
   struct netif *netif;
 
-  /* Process neighbor entries. */
-  for (i = 0; i < LWIP_ND6_NUM_NEIGHBORS; i++) {
-    switch (neighbor_cache[i].state) {
-    case ND6_INCOMPLETE:
-      if ((neighbor_cache[i].counter.probes_sent >= LWIP_ND6_MAX_MULTICAST_SOLICIT) &&
-          (!neighbor_cache[i].isrouter)) {
-        /* Retries exceeded. */
-        nd6_free_neighbor_cache_entry(i);
-      } else {
-        /* Send a NS for this entry. */
-        neighbor_cache[i].counter.probes_sent++;
-        nd6_send_neighbor_cache_probe(&neighbor_cache[i], ND6_SEND_FLAG_MULTICAST_DEST);
-      }
-      break;
-    case ND6_REACHABLE:
-      /* Send queued packets, if any are left. Should have been sent already. */
-      if (neighbor_cache[i].q != NULL) {
-        nd6_send_q(i);
-      }
-      if (neighbor_cache[i].counter.reachable_time <= ND6_TMR_INTERVAL) {
-        /* Change to stale state. */
-        neighbor_cache[i].state = ND6_STALE;
-        neighbor_cache[i].counter.stale_time = 0;
-      } else {
-        neighbor_cache[i].counter.reachable_time -= ND6_TMR_INTERVAL;
-      }
-      break;
-    case ND6_STALE:
-      neighbor_cache[i].counter.stale_time++;
-      break;
-    case ND6_DELAY:
-      if (neighbor_cache[i].counter.delay_time <= 1) {
-        /* Change to PROBE state. */
-        neighbor_cache[i].state = ND6_PROBE;
-        neighbor_cache[i].counter.probes_sent = 0;
-      } else {
-        neighbor_cache[i].counter.delay_time--;
-      }
-      break;
-    case ND6_PROBE:
-      if ((neighbor_cache[i].counter.probes_sent >= LWIP_ND6_MAX_MULTICAST_SOLICIT) &&
-          (!neighbor_cache[i].isrouter)) {
-        /* Retries exceeded. */
-        nd6_free_neighbor_cache_entry(i);
-      } else {
-        /* Send a NS for this entry. */
-        neighbor_cache[i].counter.probes_sent++;
-        nd6_send_neighbor_cache_probe(&neighbor_cache[i], 0);
-      }
-      break;
-    case ND6_NO_ENTRY:
-    default:
-      /* Do nothing. */
-      break;
-    }
-  }
 
   /* Process destination entries. */
   for (i = 0; i < LWIP_ND6_NUM_DESTINATIONS; i++) {
@@ -1173,13 +1117,6 @@ nd6_tmr(void)
         continue;
     }
     if (route_list[i].invalidation_timer <= ND6_TMR_INTERVAL / 1000) {
-      /* Should remove destination cache affected when removing a route? */
-      s8_t j;
-      for (j = 0; j < LWIP_ND6_NUM_DESTINATIONS; j++) {
-        if (compare_prefix(&destination_cache[j].destination_addr, &route_list[i].prefix, route_list[i].prefix_len)) {
-          ip6_addr_set_any(&destination_cache[j].destination_addr);
-        }
-      }
       ip6_addr_set_any(&route_list[i].prefix);
       route_list[i].invalidation_timer = 0;
       route_list[i].neighbor_entry = NULL;
@@ -1260,7 +1197,8 @@ nd6_tmr(void)
           /* Send a NS for this address. Use the unspecified address as source
            * address in all cases (RFC 4862 Sec. 5.4.2), not in the least
            * because as it is, we only consider multicast replies for DAD. */
-          nd6_send_ns(netif, netif_ip6_addr(netif, i),
+           printf("%s:%d \n",__FILE__, __LINE__);
+           nd6_send_ns(netif, netif_ip6_addr(netif, i),
             ND6_SEND_FLAG_MULTICAST_DEST | ND6_SEND_FLAG_ANY_SRC);
         }
       }
@@ -1276,6 +1214,7 @@ nd6_tmr(void)
           netif_is_link_up(netif) &&
           !ip6_addr_isinvalid(netif_ip6_addr_state(netif, 0)) &&
           !ip6_addr_isduplicated(netif_ip6_addr_state(netif, 0))) {
+            printf("send rs:%c%c count:%d netif:%p\n", netif->name[0], netif->name[1], netif->rs_count, (void *)netif);
         if (nd6_send_rs(netif) == ERR_OK) {
           netif->rs_count--;
         }

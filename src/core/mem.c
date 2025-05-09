@@ -211,6 +211,7 @@ mem_malloc(mem_size_t size)
     MEM_STATS_INC_LOCKED(err);
   } else {
     LWIP_ASSERT("malloc() must return aligned memory", LWIP_MEM_ALIGN(ret) == ret);
+    printf("mem_malloc:%d\r\n", size);
 #if LWIP_STATS && MEM_STATS
     *(mem_size_t *)ret = size;
     ret = (u8_t *)ret + MEM_LIBC_STATSHELPER_SIZE;
@@ -232,6 +233,7 @@ mem_free(void *rmem)
 #if LWIP_STATS && MEM_STATS
   rmem = (u8_t *)rmem - MEM_LIBC_STATSHELPER_SIZE;
   MEM_STATS_DEC_USED_LOCKED(used, *(mem_size_t *)rmem);
+  printf("mem free:%d\r\n", *(mem_size_t *)rmem);
 #endif
   mem_clib_free(rmem);
 }

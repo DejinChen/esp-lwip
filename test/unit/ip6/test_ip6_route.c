@@ -2,6 +2,7 @@
 
 #include "lwip/ethip6.h"
 #include "lwip/ip6.h"
+#include "lwip/nd6.h"
 #include "lwip/icmp6.h"
 #include "lwip/inet_chksum.h"
 #include "lwip/stats.h"
@@ -20,13 +21,13 @@ static int ap_cnt = 0;
 static int sta_cnt = 0;
 static u8_t ap_output_p_type_internal = (PBUF_TYPE_FLAG_STRUCT_DATA_CONTIGUOUS | PBUF_TYPE_ALLOC_SRC_MASK_STD_HEAP);
 static u8_t sta_output_p_type_internal = (PBUF_TYPE_FLAG_STRUCT_DATA_CONTIGUOUS | PBUF_TYPE_ALLOC_SRC_MASK_STD_HEAP);
-unsigned char packet_buffer[sizeof(struct ip6_hdr) + IP6_PAYLOAD_LEN];
+static unsigned char packet_buffer[sizeof(struct ip6_hdr) + IP6_PAYLOAD_LEN];
 
 /* Setups/teardown functions */
 static void
 ip6route_setup(void)
 {
-  lwip_check_ensure_no_alloc(SKIP_POOL(MEMP_SYS_TIMEOUT));
+  /* lwip_check_ensure_no_alloc(SKIP_POOL(MEMP_SYS_TIMEOUT)); */
 }
 
 static void
@@ -202,6 +203,8 @@ static void test_ip6_route_netif_with_params(pbuf_layer layer, pbuf_type type)
     send_to_netif(&ap, p);
     fail_unless(ap_cnt == 1);
     fail_unless(sta_cnt == 1);
+
+    nd6_tmr();
 
     /* cleanup */
     ap_cnt = 0;

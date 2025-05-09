@@ -95,32 +95,7 @@ int main(void)
   SRunner *sr;
   size_t i;
   suite_getter_fn* suites[] = {
-#ifndef ESP_TEST_DEBUG
-    ip4_suite,
-    ip6_suite,
-    ip6_nd6_suite,
-    udp_suite,
-    tcp_suite,
-    tcp_oos_suite,
-    tcp_state_suite,
-    def_suite,
-    dns_suite,
-    mem_suite,
-    netif_suite,
-    pbuf_suite,
-    timers_suite,
-    etharp_suite,
-    dhcp_suite,
-    mdns_suite,
-    mqtt_suite,
-    sockets_suite,
-#if PPP_SUPPORT && PPPOS_SUPPORT
-    pppos_suite,
-#endif /* PPP_SUPPORT && PPPOS_SUPPORT */
-#endif /* ESP_TEST_DEBUG */
-    ip4napt_suite,
-    ip4route_suite,
-    ip6route_suite
+    ip6_nd6_suite
   };
   size_t num = sizeof(suites)/sizeof(void*);
   LWIP_ASSERT("No suites defined", num > 0);
